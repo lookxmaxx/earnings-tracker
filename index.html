@@ -5,68 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Earnings Tracker</title>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAjo-bpx6znREPhYCVc3804TWfQyks1TXg",
             authDomain: "instaearningstracker.firebaseapp.com",
             projectId: "instaearningstracker",
-            storageBucket: "instaearningstracker.appspot.com",
+            storageBucket: "instaearningstracker.firebasestorage.app",
             messagingSenderId: "933511357072",
             appId: "1:933511357072:web:d68ecbf52ddcc6393b2e15",
-            measurementId: "G-53L2M9XFEM",
-            databaseURL: "https://instaearningstracker-default-rtdb.firebaseio.com/"
+            measurementId: "G-53L2M9XFEM"
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const earningsRef = ref(db, "totalEarnings");
+        const db = getDatabase();
+        const earningsRef = ref(db, "earnings");
 
-        function updateEarningsDisplay(value) {
-            document.getElementById("totalEarnings").innerText = "$" + value.toFixed(2);
+        async function getStoredEarnings() {
+            const snapshot = await get(earningsRef);
+            return snapshot.exists() ? snapshot.val() : 0;
         }
 
-        function getStoredEarnings() {
-            get(earningsRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    updateEarningsDisplay(snapshot.val());
-                } else {
-                    set(earningsRef, 0);
-                    updateEarningsDisplay(0);
-                }
-            });
+        async function updateEarningsDisplay() {
+            let earnings = await getStoredEarnings();
+            document.getElementById("totalEarnings").innerText = "$" + earnings.toFixed(2);
         }
 
-        function addUmaxEarnings() {
-            get(earningsRef).then((snapshot) => {
-                let currentEarnings = snapshot.exists() ? snapshot.val() : 0;
-                let newEarnings = currentEarnings + 5;
-                set(earningsRef, newEarnings);
-            });
+        window.addUmaxEarnings = async function () {
+            let earnings = await getStoredEarnings() + 5;
+            update(earningsRef, { total: earnings });
+            updateEarningsDisplay();
         }
 
-        function trackBasedEarnings() {
+        window.trackBasedEarnings = async function () {
             let link = document.getElementById("basedLink").value;
             let views = prompt("Enter views for " + link);
             if (views && !isNaN(views)) {
-                get(earningsRef).then((snapshot) => {
-                    let currentEarnings = snapshot.exists() ? snapshot.val() : 0;
-                    let newEarnings = currentEarnings + (parseFloat(views) / 5000) * 1;
-                    set(earningsRef, newEarnings);
-                });
+                let earnings = await getStoredEarnings() + (parseFloat(views) / 5000) * 1;
+                update(earningsRef, { total: earnings });
+                updateEarningsDisplay();
             }
         }
 
-        function resetEarnings() {
-            set(earningsRef, 0);
+        window.resetEarnings = function () {
+            set(earningsRef, { total: 0 });
+            updateEarningsDisplay();
         }
 
-        onValue(earningsRef, (snapshot) => {
-            updateEarningsDisplay(snapshot.val());
-        });
-
-        window.onload = getStoredEarnings;
+        window.onload = updateEarningsDisplay;
     </script>
     <style>
         body {
