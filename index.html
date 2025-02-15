@@ -7,21 +7,20 @@
 </head>
 <body>
     <h1>Total Earnings: $<span id="totalEarnings">0</span></h1>
-    <h2>Umax Earnings: $<span id="umaxEarnings">0</span></h2>
-    <h2>Based Bodyworks Earnings: $<span id="basedEarnings">0</span></h2>
     
-    <button onclick="addUmaxEarnings()">Add Umax ($5)</button>
+    <button id="addUmaxBtn">Add Umax ($5)</button>
     
     <br><br>
     
     <input type="text" id="reelLink" placeholder="Paste Reel Link">
-    <button onclick="trackBasedEarnings()">Add Based Reel</button>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    <button id="trackBasedBtn">Add Based Reel</button>
 
-        // Firebase Config
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // Your Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAjo-bpx6znREPhYCVc3804TWfQyks1TXg",
             authDomain: "instaearningstracker.firebaseapp.com",
@@ -38,43 +37,23 @@
         const earningsDoc = doc(db, "earnings", "total");
 
         // Function to update earnings
-        async function updateEarnings(type, amount) {
-            try {
-                const docSnap = await getDoc(earningsDoc);
-                if (docSnap.exists()) {
-                    let data = docSnap.data();
-                    let newTotal = data.total + amount;
-                    let newUmax = type === "umax" ? data.umax + amount : data.umax;
-                    let newBased = type === "based" ? data.based + amount : data.based;
-
-                    await updateDoc(earningsDoc, { 
-                        total: newTotal,
-                        umax: newUmax,
-                        based: newBased
-                    });
-
-                    document.getElementById("totalEarnings").innerText = newTotal.toFixed(2);
-                    document.getElementById("umaxEarnings").innerText = newUmax.toFixed(2);
-                    document.getElementById("basedEarnings").innerText = newBased.toFixed(2);
-                } else {
-                    // If document doesn't exist, create it with initial values
-                    await setDoc(earningsDoc, { total: amount, umax: amount, based: amount });
-                    document.getElementById("totalEarnings").innerText = amount.toFixed(2);
-                    document.getElementById("umaxEarnings").innerText = amount.toFixed(2);
-                    document.getElementById("basedEarnings").innerText = amount.toFixed(2);
-                }
-            } catch (error) {
-                console.error("Error updating earnings:", error);
+        async function updateEarnings(amount) {
+            const docSnap = await getDoc(earningsDoc);
+            if (docSnap.exists()) {
+                let data = docSnap.data();
+                let newTotal = (data.total || 0) + amount;
+                await updateDoc(earningsDoc, { total: newTotal });
+                document.getElementById("totalEarnings").innerText = newTotal.toFixed(2);
             }
         }
 
-        // Function for Umax ($5 per click)
-        function addUmaxEarnings() {
-            updateEarnings("umax", 5);
-        }
+        // Function for Umax Earnings ($5 per click)
+        document.getElementById("addUmaxBtn").addEventListener("click", function () {
+            updateEarnings(5);
+        });
 
-        // Function for Based Bodyworks (Manual Tracking)
-        function trackBasedEarnings() {
+        // Function for Based Bodyworks Earnings
+        document.getElementById("trackBasedBtn").addEventListener("click", function () {
             let reelLink = document.getElementById("reelLink").value;
             if (!reelLink) {
                 alert("Please paste a valid reel link.");
@@ -83,21 +62,20 @@
             let views = prompt("Enter current view count:");
             if (views && !isNaN(views)) {
                 let earnings = (parseInt(views) / 1000) * 0.2;
-                updateEarnings("based", earnings);
+                updateEarnings(earnings);
             } else {
                 alert("Invalid view count.");
             }
-        }
+        });
 
         // Load initial earnings
         async function loadEarnings() {
             const docSnap = await getDoc(earningsDoc);
             if (docSnap.exists()) {
                 document.getElementById("totalEarnings").innerText = docSnap.data().total.toFixed(2);
-                document.getElementById("umaxEarnings").innerText = docSnap.data().umax.toFixed(2);
-                document.getElementById("basedEarnings").innerText = docSnap.data().based.toFixed(2);
             }
         }
+
         loadEarnings();
     </script>
 </body>
