@@ -9,103 +9,99 @@
             background-color: #121212;
             color: #ffffff;
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
+            text-align: center;
+            padding: 20px;
         }
         .container {
-            width: 90%;
             max-width: 500px;
-            background: #1e1e1e;
+            margin: auto;
             padding: 20px;
+            background: #1e1e1e;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         }
         h1 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
-        .earnings {
-            background: #333;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.5rem;
+            font-size: 36px;
             font-weight: bold;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .input-group {
             margin-bottom: 15px;
         }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #252525;
-            color: white;
-            font-size: 1rem;
-            margin-top: 5px;
+        .earnings {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4caf50;
+            margin-bottom: 25px;
         }
-        button {
+        input, button {
             width: 100%;
             padding: 12px;
+            margin: 12px 0;
             border: none;
-            border-radius: 5px;
-            background: #ff9800;
+            border-radius: 6px;
+            font-size: 18px;
+        }
+        input {
+            background: #333;
+            color: #fff;
+        }
+        button {
+            background: #4caf50;
             color: white;
-            font-size: 1rem;
             cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
+            font-weight: bold;
         }
         button:hover {
-            background: #e68900;
+            background: #45a049;
         }
         .reset {
-            background: #d32f2f;
+            background: #ff4444;
         }
         .reset:hover {
-            background: #b71c1c;
+            background: #cc0000;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Earnings Tracker</h1>
+        <h1>Total Earnings</h1>
         <div class="earnings" id="totalEarnings">$0</div>
-        <div class="input-group">
-            <label for="basedBodyworks">Paste Reel Link:</label>
-            <input type="text" id="basedBodyworks" placeholder="Enter reel link">
-        </div>
+        
+        <input type="text" id="basedLink" placeholder="Paste Reel Link">
         <button onclick="trackBasedEarnings()">Track Based Bodyworks</button>
-        <button onclick="addUmaxEarnings()">Add $5 from Umax</button>
+        <button onclick="addUmaxEarnings()">Add $5 (Umax)</button>
         <button class="reset" onclick="resetEarnings()">Reset</button>
     </div>
+
     <script>
-        let totalEarnings = 0;
-        function updateDisplay() {
-            document.getElementById("totalEarnings").innerText = "$" + totalEarnings;
+        function getStoredEarnings() {
+            return parseFloat(localStorage.getItem("totalEarnings")) || 0;
         }
+
+        function updateEarningsDisplay() {
+            document.getElementById("totalEarnings").innerText = "$" + getStoredEarnings().toFixed(2);
+        }
+
+        function addUmaxEarnings() {
+            let earnings = getStoredEarnings() + 5;
+            localStorage.setItem("totalEarnings", earnings);
+            updateEarningsDisplay();
+        }
+
         function trackBasedEarnings() {
-            let views = prompt("Enter views:");
-            if (!isNaN(views) && views !== "") {
-                totalEarnings += (parseInt(views) / 1000) * 0.2;
-                updateDisplay();
+            let link = document.getElementById("basedLink").value;
+            let views = prompt("Enter views for " + link);
+            if (views && !isNaN(views)) {
+                let earnings = getStoredEarnings() + (parseFloat(views) / 5000) * 1;
+                localStorage.setItem("totalEarnings", earnings);
+                updateEarningsDisplay();
             }
         }
-        function addUmaxEarnings() {
-            totalEarnings += 5;
-            updateDisplay();
-        }
+
         function resetEarnings() {
-            totalEarnings = 0;
-            updateDisplay();
+            localStorage.setItem("totalEarnings", 0);
+            updateEarningsDisplay();
         }
+
+        window.onload = updateEarningsDisplay;
     </script>
 </body>
 </html>
