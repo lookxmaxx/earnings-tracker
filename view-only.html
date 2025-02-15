@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Total Earnings</title>
+</head>
+<body>
+    <h1>Total Earnings: $<span id="totalEarnings">0</span></h1>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR-API-KEY",
+            authDomain: "YOUR-PROJECT.firebaseapp.com",
+            projectId: "YOUR-PROJECT-ID",
+            storageBucket: "YOUR-PROJECT.appspot.com",
+            messagingSenderId: "YOUR-SENDER-ID",
+            appId: "YOUR-APP-ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const earningsDoc = doc(db, "earnings", "total");
+
+        // Live update earnings
+        onSnapshot(earningsDoc, (docSnap) => {
+            if (docSnap.exists()) {
+                document.getElementById("totalEarnings").innerText = docSnap.data().total.toFixed(2);
+            }
+        });
+    </script>
+</body>
+</html>
