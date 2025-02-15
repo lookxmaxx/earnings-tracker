@@ -15,6 +15,10 @@
     <input type="text" id="reelLink" placeholder="Paste Reel Link">
     <button id="trackBasedBtn">Add Based Reel</button>
 
+    <br><br>
+
+    <button id="resetEarningsBtn" style="background-color: red; color: white;">Reset Earnings</button>
+
     <script type="module">
         // Import Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
@@ -47,12 +51,17 @@
             }
         }
 
-        // Function for Umax Earnings ($5 per click)
+        // Function to reset earnings
+        async function resetEarnings() {
+            await updateDoc(earningsDoc, { total: 0 });
+            document.getElementById("totalEarnings").innerText = "0.00";
+        }
+
+        // Event Listeners
         document.getElementById("addUmaxBtn").addEventListener("click", function () {
             updateEarnings(5);
         });
 
-        // Function for Based Bodyworks Earnings
         document.getElementById("trackBasedBtn").addEventListener("click", function () {
             let reelLink = document.getElementById("reelLink").value;
             if (!reelLink) {
@@ -65,6 +74,12 @@
                 updateEarnings(earnings);
             } else {
                 alert("Invalid view count.");
+            }
+        });
+
+        document.getElementById("resetEarningsBtn").addEventListener("click", function () {
+            if (confirm("Are you sure you want to reset earnings to $0?")) {
+                resetEarnings();
             }
         });
 
