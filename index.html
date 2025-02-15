@@ -18,16 +18,17 @@
     <script type="module">
         // Import Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // Paste your Firebase config here 👇
+        // Your Firebase Config
         const firebaseConfig = {
-            apiKey: "YOUR-API-KEY",
-            authDomain: "YOUR-PROJECT.firebaseapp.com",
-            projectId: "YOUR-PROJECT-ID",
-            storageBucket: "YOUR-PROJECT.appspot.com",
-            messagingSenderId: "YOUR-SENDER-ID",
-            appId: "YOUR-APP-ID"
+            apiKey: "AIzaSyAjo-bpx6znREPhYCVc3804TWfQyks1TXg",
+            authDomain: "instaearningstracker.firebaseapp.com",
+            projectId: "instaearningstracker",
+            storageBucket: "instaearningstracker.appspot.com",
+            messagingSenderId: "933511357072",
+            appId: "1:933511357072:web:d68ecbf52ddcc6393b2e15",
+            measurementId: "G-53L2M9XFEM"
         };
 
         // Initialize Firebase
@@ -35,46 +36,45 @@
         const db = getFirestore(app);
         const earningsDoc = doc(db, "earnings", "total");
 
-        // Function to update earnings
+        // Function to update earnings in Firebase
         async function updateEarnings(amount) {
             const docSnap = await getDoc(earningsDoc);
             if (docSnap.exists()) {
                 let data = docSnap.data();
-                let newTotal = data.total + amount;
+                let newTotal = (data.total || 0) + amount;
                 await updateDoc(earningsDoc, { total: newTotal });
-                document.getElementById("totalEarnings").innerText = newTotal.toFixed(2);
+            } else {
+                await setDoc(earningsDoc, { total: amount });
             }
         }
 
         // Function for Umax ($5 per click)
-        function addUmaxEarnings() {
-            updateEarnings(5);
+        async function addUmaxEarnings() {
+            await updateEarnings(5);
         }
 
-        // Function for Based Bodyworks (Manual Tracking)
-        function trackBasedEarnings() {
+        // Function for Based Bodyworks ($0.2 per 1K views)
+        async function trackBasedEarnings() {
             let reelLink = document.getElementById("reelLink").value;
-            if (!reelLink) {
+            if (!reelLink.trim()) {
                 alert("Please paste a valid reel link.");
                 return;
             }
             let views = prompt("Enter current view count:");
             if (views && !isNaN(views)) {
                 let earnings = (parseInt(views) / 1000) * 0.2;
-                updateEarnings(earnings);
+                await updateEarnings(earnings);
             } else {
                 alert("Invalid view count.");
             }
         }
 
-        // Load initial earnings
-        async function loadEarnings() {
-            const docSnap = await getDoc(earningsDoc);
+        // Live earnings update (Real-time)
+        onSnapshot(earningsDoc, (docSnap) => {
             if (docSnap.exists()) {
                 document.getElementById("totalEarnings").innerText = docSnap.data().total.toFixed(2);
             }
-        }
-        loadEarnings();
+        });
     </script>
 </body>
 </html>
