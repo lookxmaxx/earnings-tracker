@@ -5,54 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Earnings Tracker</title>
     <script type="module">
-        // Import Firebase SDKs
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-        
-        // Firebase configuration
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyAjo-bpx6znREPhYCVc3804TWfQyks1TXg",
             authDomain: "instaearningstracker.firebaseapp.com",
             projectId: "instaearningstracker",
-            storageBucket: "instaearningstracker.firebasestorage.app",
+            storageBucket: "instaearningstracker.appspot.com",
             messagingSenderId: "933511357072",
             appId: "1:933511357072:web:d68ecbf52ddcc6393b2e15",
-            measurementId: "G-53L2M9XFEM"
+            measurementId: "G-53L2M9XFEM",
+            databaseURL: "https://instaearningstracker-default-rtdb.firebaseio.com/"
         };
-        
-        // Initialize Firebase
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const earningsRef = ref(db, 'earnings');
-        
+        const earningsRef = ref(db, "totalEarnings");
+
         function updateEarningsDisplay(value) {
-            document.getElementById("totalEarnings").innerText = "$" + (value || 0).toFixed(2);
+            document.getElementById("totalEarnings").innerText = "$" + value.toFixed(2);
         }
-        
-        function addUmaxEarnings() {
+
+        function getStoredEarnings() {
             get(earningsRef).then((snapshot) => {
-                let earnings = snapshot.exists() ? snapshot.val() + 5 : 5;
-                set(earningsRef, earnings);
+                if (snapshot.exists()) {
+                    updateEarningsDisplay(snapshot.val());
+                } else {
+                    set(earningsRef, 0);
+                    updateEarningsDisplay(0);
+                }
             });
         }
-        
+
+        function addUmaxEarnings() {
+            get(earningsRef).then((snapshot) => {
+                let currentEarnings = snapshot.exists() ? snapshot.val() : 0;
+                let newEarnings = currentEarnings + 5;
+                set(earningsRef, newEarnings);
+            });
+        }
+
         function trackBasedEarnings() {
-            let views = prompt("Enter views:");
+            let link = document.getElementById("basedLink").value;
+            let views = prompt("Enter views for " + link);
             if (views && !isNaN(views)) {
                 get(earningsRef).then((snapshot) => {
-                    let earnings = snapshot.exists() ? snapshot.val() + (parseFloat(views) / 5000) * 1 : (parseFloat(views) / 5000) * 1;
-                    set(earningsRef, earnings);
+                    let currentEarnings = snapshot.exists() ? snapshot.val() : 0;
+                    let newEarnings = currentEarnings + (parseFloat(views) / 5000) * 1;
+                    set(earningsRef, newEarnings);
                 });
             }
         }
-        
+
         function resetEarnings() {
             set(earningsRef, 0);
         }
-        
+
         onValue(earningsRef, (snapshot) => {
             updateEarningsDisplay(snapshot.val());
         });
+
+        window.onload = getStoredEarnings;
     </script>
     <style>
         body {
