@@ -4,8 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Earnings Tracker</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+    <script type="module">
+        // Import Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjo-bpx6znREPhYCVc3804TWfQyks1TXg",
+            authDomain: "instaearningstracker.firebaseapp.com",
+            projectId: "instaearningstracker",
+            storageBucket: "instaearningstracker.firebasestorage.app",
+            messagingSenderId: "933511357072",
+            appId: "1:933511357072:web:d68ecbf52ddcc6393b2e15",
+            measurementId: "G-53L2M9XFEM"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const earningsRef = ref(db, 'earnings');
+        
+        function updateEarningsDisplay(value) {
+            document.getElementById("totalEarnings").innerText = "$" + (value || 0).toFixed(2);
+        }
+        
+        function addUmaxEarnings() {
+            get(earningsRef).then((snapshot) => {
+                let earnings = snapshot.exists() ? snapshot.val() + 5 : 5;
+                set(earningsRef, earnings);
+            });
+        }
+        
+        function trackBasedEarnings() {
+            let views = prompt("Enter views:");
+            if (views && !isNaN(views)) {
+                get(earningsRef).then((snapshot) => {
+                    let earnings = snapshot.exists() ? snapshot.val() + (parseFloat(views) / 5000) * 1 : (parseFloat(views) / 5000) * 1;
+                    set(earningsRef, earnings);
+                });
+            }
+        }
+        
+        function resetEarnings() {
+            set(earningsRef, 0);
+        }
+        
+        onValue(earningsRef, (snapshot) => {
+            updateEarningsDisplay(snapshot.val());
+        });
+    </script>
     <style>
         body {
             background-color: #121212;
@@ -71,51 +119,5 @@
         <button onclick="trackBasedEarnings()">Track Based Bodyworks</button>
         <button class="reset" onclick="resetEarnings()">Reset</button>
     </div>
-
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-              apiKey: "AIzaSyAjo-bpx6znREPhYCVc3804TWfQyks1TXg",
-  authDomain: "instaearningstracker.firebaseapp.com",
-  projectId: "instaearningstracker",
-  storageBucket: "instaearningstracker.firebasestorage.app",
-  messagingSenderId: "933511357072",
-  appId: "1:933511357072:web:d68ecbf52ddcc6393b2e15",
-  measurementId: "G-53L2M9XFEM"
-        };
-        
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const earningsRef = db.ref("totalEarnings");
-        
-        // Sync earnings in real-time
-        earningsRef.on("value", (snapshot) => {
-            const earnings = snapshot.val() || 0;
-            document.getElementById("totalEarnings").innerText = "$" + earnings.toFixed(2);
-        });
-        
-        function addUmaxEarnings() {
-            earningsRef.once("value").then(snapshot => {
-                let earnings = snapshot.val() || 0;
-                earningsRef.set(earnings + 5);
-            });
-        }
-        
-        function trackBasedEarnings() {
-            let link = document.getElementById("basedLink").value;
-            let views = prompt("Enter views for " + link);
-            if (views && !isNaN(views)) {
-                earningsRef.once("value").then(snapshot => {
-                    let earnings = snapshot.val() || 0;
-                    earningsRef.set(earnings + (parseFloat(views) / 5000) * 1);
-                });
-            }
-        }
-        
-        function resetEarnings() {
-            earningsRef.set(0);
-        }
-    </script>
 </body>
 </html>
