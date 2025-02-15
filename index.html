@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Earnings Tracker</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
     <style>
         body {
             background-color: #121212;
@@ -21,23 +23,23 @@
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         }
         h1 {
-            font-size: 36px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        .earnings {
             font-size: 32px;
             font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .earnings {
+            font-size: 28px;
+            font-weight: bold;
             color: #4caf50;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         input, button {
             width: 100%;
-            padding: 12px;
-            margin: 12px 0;
+            padding: 10px;
+            margin: 10px 0;
             border: none;
-            border-radius: 6px;
-            font-size: 18px;
+            border-radius: 5px;
+            font-size: 16px;
         }
         input {
             background: #333;
@@ -47,7 +49,6 @@
             background: #4caf50;
             color: white;
             cursor: pointer;
-            font-weight: bold;
         }
         button:hover {
             background: #45a049;
@@ -65,43 +66,56 @@
         <h1>Total Earnings</h1>
         <div class="earnings" id="totalEarnings">$0</div>
         
+        <button onclick="addUmaxEarnings()">Add $5 (Umax)</button>
         <input type="text" id="basedLink" placeholder="Paste Reel Link">
         <button onclick="trackBasedEarnings()">Track Based Bodyworks</button>
-        <button onclick="addUmaxEarnings()">Add $5 (Umax)</button>
         <button class="reset" onclick="resetEarnings()">Reset</button>
     </div>
 
     <script>
-        function getStoredEarnings() {
-            return parseFloat(localStorage.getItem("totalEarnings")) || 0;
-        }
-
-        function updateEarningsDisplay() {
-            document.getElementById("totalEarnings").innerText = "$" + getStoredEarnings().toFixed(2);
-        }
-
+        // Firebase configuration
+        const firebaseConfig = {
+              apiKey: "AIzaSyAjo-bpx6znREPhYCVc3804TWfQyks1TXg",
+  authDomain: "instaearningstracker.firebaseapp.com",
+  projectId: "instaearningstracker",
+  storageBucket: "instaearningstracker.firebasestorage.app",
+  messagingSenderId: "933511357072",
+  appId: "1:933511357072:web:d68ecbf52ddcc6393b2e15",
+  measurementId: "G-53L2M9XFEM"
+        };
+        
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const earningsRef = db.ref("totalEarnings");
+        
+        // Sync earnings in real-time
+        earningsRef.on("value", (snapshot) => {
+            const earnings = snapshot.val() || 0;
+            document.getElementById("totalEarnings").innerText = "$" + earnings.toFixed(2);
+        });
+        
         function addUmaxEarnings() {
-            let earnings = getStoredEarnings() + 5;
-            localStorage.setItem("totalEarnings", earnings);
-            updateEarningsDisplay();
+            earningsRef.once("value").then(snapshot => {
+                let earnings = snapshot.val() || 0;
+                earningsRef.set(earnings + 5);
+            });
         }
-
+        
         function trackBasedEarnings() {
             let link = document.getElementById("basedLink").value;
             let views = prompt("Enter views for " + link);
             if (views && !isNaN(views)) {
-                let earnings = getStoredEarnings() + (parseFloat(views) / 5000) * 1;
-                localStorage.setItem("totalEarnings", earnings);
-                updateEarningsDisplay();
+                earningsRef.once("value").then(snapshot => {
+                    let earnings = snapshot.val() || 0;
+                    earningsRef.set(earnings + (parseFloat(views) / 5000) * 1);
+                });
             }
         }
-
+        
         function resetEarnings() {
-            localStorage.setItem("totalEarnings", 0);
-            updateEarningsDisplay();
+            earningsRef.set(0);
         }
-
-        window.onload = updateEarningsDisplay;
     </script>
 </body>
 </html>
